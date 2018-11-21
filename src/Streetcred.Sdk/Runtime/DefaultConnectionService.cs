@@ -11,6 +11,7 @@ using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Exceptions;
 using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Connections;
+using Streetcred.Sdk.Models;
 using Streetcred.Sdk.Models.Connections;
 using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
@@ -273,6 +274,14 @@ namespace Streetcred.Sdk.Runtime
             Logger.LogInformation(LoggingEvents.ListConnections, "List Connections");
 
             return RecordService.SearchAsync<ConnectionRecord>(wallet, query, null, count);
+        }
+
+        /// <inheritdoc />
+        public Task<PagedCollection<ConnectionRecord>> ListAsync(Wallet wallet, SearchRecordQuery query, Page page)
+        {
+            Logger.LogInformation(LoggingEvents.ListConnections, "List Connections");
+
+            return RecordService.SearchAsync<ConnectionRecord>(wallet, query, null, page);
         }
 
         /// <inheritdoc />

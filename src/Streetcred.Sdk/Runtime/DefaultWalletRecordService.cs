@@ -5,6 +5,7 @@ using Hyperledger.Indy.NonSecretsApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Models;
 using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
 using Streetcred.Sdk.Utils;
@@ -33,21 +34,43 @@ namespace Streetcred.Sdk.Runtime
                 (query ?? new SearchRecordQuery()).ToJson(),
                 (options ?? new SearchRecordOptions()).ToJson()))
             {
-                var result = JsonConvert.DeserializeObject<SearchRecordResult>(await search.NextAsync(wallet, count));
+                var value = await search.NextAsync(wallet, count);
+                var result = JsonConvert.DeserializeObject<SearchRecordResult>(value);
                 // TODO: Add support for pagination
 
-                return result.Records?
-                           .Select(x =>
-                           {
-                               var record = JsonConvert.DeserializeObject<T>(x.Value);
-                               record.Tags.Clear();
-                               foreach (var tag in x.Tags)
-                                   record.Tags.Add(tag.Key, tag.Value);
-                               return record;
-                           })
-                           .ToList()
-                       ?? new List<T>();
+                return result.Records?.Select(CreateRecord<T>).ToList() ?? new List<T>();
             }
+        }
+
+        public async Task<PagedCollection<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query,
+            SearchRecordOptions options, Page page) where T : WalletRecord, new()
+        {
+            options = options ?? new SearchRecordOptions();
+            query = query ?? new SearchRecordQuery();
+
+            options.RetrieveTotalCount = true;
+
+            using (var search =
+                await NonSecrets.OpenSearchAsync(wallet, new T().GetTypeName(), query.ToJson(), options.ToJson()))
+            {
+                var result =
+                    JsonConvert.DeserializeObject<SearchRecordResult>(await search.NextAsync(wallet, page.ItemCount));
+
+                var records = result.Records?.Select(CreateRecord<T>).ToList() ?? new List<T>();
+                return new PagedCollection<T>(records) {PageIndex = 0, TotalCount = result.TotalCount ?? 0};
+            }
+        }
+
+        private static T CreateRecord<T>(SearchRecordItem searchRecordItem) where T : WalletRecord, new()
+        {
+            var record = JsonConvert.DeserializeObject<T>(searchRecordItem.Value);
+            record.Tags.Clear();
+
+            foreach (var tag in searchRecordItem.Tags)
+            {
+                record.Tags.Add(tag.Key, tag.Value);
+            }
+            return record;
         }
 
         /// <inheritdoc />

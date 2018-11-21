@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
+using Streetcred.Sdk.Models;
 using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
 
@@ -17,12 +18,11 @@ namespace Streetcred.Sdk.Contracts
         /// <returns>The record async.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="record">Record.</param>
-        /// <param name="id">Identifier.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
         Task AddAsync<T>(Wallet wallet, T record) where T : WalletRecord, new();
 
         /// <summary>
-        /// Searchs the records async.
+        /// Searches the records.
         /// </summary>
         /// <returns>The records async.</returns>
         /// <param name="wallet">Wallet.</param>
@@ -30,7 +30,11 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="options">Options.</param>
         /// <param name="count">The number of items to return</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        Task<List<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options, int count) where T : WalletRecord, new();
+        Task<List<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options, int count)
+            where T : WalletRecord, new();
+
+        Task<PagedCollection<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options,
+            Page page) where T : WalletRecord, new();
 
         /// <summary>
         /// Updates the record async.

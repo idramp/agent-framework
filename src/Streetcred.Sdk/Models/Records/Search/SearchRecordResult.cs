@@ -14,5 +14,11 @@ namespace Streetcred.Sdk.Models.Records.Search
         /// <value>The resulting records.</value>
         [JsonProperty("records")]
         public List<SearchRecordItem> Records { get; set; }
+
+        /// <summary>
+        /// The total record count in the search
+        /// </summary>
+        [JsonProperty("totalCount")]
+        public int? TotalCount { get; set; }
     }
 }

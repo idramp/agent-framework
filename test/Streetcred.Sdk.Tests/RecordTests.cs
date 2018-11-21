@@ -62,14 +62,15 @@ namespace Streetcred.Sdk.Tests
             var tagName = Guid.NewGuid().ToString();
             var tagValue = Guid.NewGuid().ToString();
 
-            var record = new ConnectionRecord { ConnectionId = Guid.NewGuid().ToString() };
+            var record = new ConnectionRecord {ConnectionId = Guid.NewGuid().ToString()};
             record.Tags.Add(tagName, tagValue);
 
             await _recordService.AddAsync(_wallet, record);
 
             var search =
                 await _recordService.SearchAsync<ConnectionRecord>(_wallet,
-                    new SearchRecordQuery() { { tagName, tagValue } }, null, 100);
+                    new SearchRecordQuery {{tagName, tagValue}}, new SearchRecordOptions {RetrieveTotalCount = true},
+                    new Page {ItemCount = 5});
 
             var retrieved = search.Single();
 

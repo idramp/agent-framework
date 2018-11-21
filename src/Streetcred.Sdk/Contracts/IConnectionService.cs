@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Messages.Connections;
+using Streetcred.Sdk.Models;
 using Streetcred.Sdk.Models.Connections;
 using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
@@ -28,7 +30,15 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet to search</param>
         /// <param name="query">The query used to filter the search results.</param>
         /// <param name="count">The maximum item count of items to return to return.</param>
+        [Obsolete("Please use overload ListAsync(Wallet wallet, SearchRecordQuery query, Page page)")]
         Task<List<ConnectionRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100);
+
+        /// <summary>Retrieves a list of <see cref="ConnectionRecord"/> items for the given search criteria</summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="query">The query.</param>
+        /// <param name="page">The page.</param>
+        /// <returns></returns>
+        Task<PagedCollection<ConnectionRecord>> ListAsync(Wallet wallet, SearchRecordQuery query, Page page);
 
         /// <summary>
         /// Creates the invitation asynchronous.
@@ -36,7 +46,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="config">An optional configuration object used to configure the resulting invitations presentation</param>
         /// <returns></returns>
-        Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet, DefaultCreateInviteConfiguration config = null);
+        Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet,
+            DefaultCreateInviteConfiguration config = null);
 
         /// <summary>
         /// Accepts the connection invitation async.
@@ -81,7 +92,7 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection Identifier.</param>
-        /// <returns>The response async with a boolean indicating if deletion occured sucessfully</returns>
+        /// <returns>The response async with a boolean indicating if deletion occured successfully</returns>
         Task<bool> DeleteAsync(Wallet wallet, string connectionId);
     }
 }
