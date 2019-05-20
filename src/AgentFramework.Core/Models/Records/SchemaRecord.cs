@@ -22,13 +22,17 @@
         /// <summary>Gets or sets the attribute names.</summary>
         /// <value>The attribute names.</value>
         public string[] AttributeNames { get; set; }
+
+        /// <summary>Gets or sets the sequence number.</summary>
+        /// <value>The sequence number.</value>
+        public int? SequenceNumber { get; set; }
         
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Name={Name}, " +
             $"Version={Version}, " +
-            $"AttributeNames={string.Join(",", AttributeNames ?? new string[0])}, " +
+            $"AttributeNames={string.Join(",", AttributeNames)}, " +
             base.ToString();
     }
 }

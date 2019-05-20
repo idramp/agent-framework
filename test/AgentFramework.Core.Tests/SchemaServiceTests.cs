@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Runtime;
-using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
@@ -39,7 +38,7 @@ namespace AgentFramework.Core.Tests
         public async Task CanCreateAndResolveSchema()
         {
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new { seed = TestConstants.StewartDid }.ToJson());
+                new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             var schemaName = $"Test-Schema-{Guid.NewGuid().ToString("N")}";
             var schemaVersion = "1.0";
@@ -52,9 +51,9 @@ namespace AgentFramework.Core.Tests
             //Resolve it from the ledger with its identifier
             var resultSchema = await _schemaService.LookupSchemaAsync(_pool, schemaId);
 
-            var resultSchemaName = JObject.Parse(resultSchema)["name"].ToString();
-            var resultSchemaVersion = JObject.Parse(resultSchema)["version"].ToString();
-            var sequenceId = Convert.ToInt32(JObject.Parse(resultSchema)["seqNo"].ToString());
+            var resultSchemaName = resultSchema.Name;
+            var resultSchemaVersion = resultSchema.Version;
+            var sequenceId = resultSchema.SequenceNumber??0;
 
             Assert.Equal(schemaName, resultSchemaName);
             Assert.Equal(schemaVersion, resultSchemaVersion);
@@ -62,8 +61,8 @@ namespace AgentFramework.Core.Tests
             //Resolve it from the ledger with its sequence Id
             var secondResultSchema = await _schemaService.LookupSchemaAsync(_pool, sequenceId);
 
-            var secondResultSchemaName = JObject.Parse(secondResultSchema)["name"].ToString();
-            var secondResultSchemaVersion = JObject.Parse(secondResultSchema)["version"].ToString();
+            var secondResultSchemaName = secondResultSchema.Name;
+            var secondResultSchemaVersion = secondResultSchema.Version;
 
             Assert.Equal(schemaName, secondResultSchemaName);
             Assert.Equal(schemaVersion, secondResultSchemaVersion);
@@ -73,7 +72,7 @@ namespace AgentFramework.Core.Tests
         public async Task CanCreateAndResolveCredentialDefinitionAndSchema()
         {
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new { seed = TestConstants.StewartDid }.ToJson());
+                new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             var schemaName = $"Test-Schema-{Guid.NewGuid().ToString()}";
             var schemaVersion = "1.0";
@@ -88,14 +87,14 @@ namespace AgentFramework.Core.Tests
             var credDef =
                 await _schemaService.LookupCredentialDefinitionAsync(_pool, credId);
 
-            var resultCredId = JObject.Parse(credDef)["id"].ToString();
+            var resultCredId = credDef.Id;
 
             Assert.Equal(credId, resultCredId);
 
             var result = await _schemaService.LookupSchemaFromCredentialDefinitionAsync(_pool, credId);
 
-            var resultSchemaName = JObject.Parse(result)["name"].ToString();
-            var resultSchemaVersion = JObject.Parse(result)["version"].ToString();
+            var resultSchemaName = result.Name;
+            var resultSchemaVersion = result.Version;
 
             Assert.Equal(schemaName, resultSchemaName);
             Assert.Equal(schemaVersion, resultSchemaVersion);

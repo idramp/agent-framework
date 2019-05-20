@@ -93,7 +93,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="pool">The pool.</param>
         /// <param name="definitionId">The identifier of the definition to resolve.</param>
         /// <returns>A json string of the credential definition</returns>
-        Task<string> LookupCredentialDefinitionAsync(Pool pool, string definitionId);
+        Task<DefinitionRecord> LookupCredentialDefinitionAsync(Pool pool, string definitionId);
 
         /// <summary>
         /// Looks up the schema definition on the ledger given a credential definition identifier.
@@ -101,7 +101,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="pool">The pool.</param>
         /// <param name="credentialDefinitionId">The credential definition id.</param>
         /// <returns>A json string of the schema</returns>
-        Task<string> LookupSchemaFromCredentialDefinitionAsync(Pool pool, string credentialDefinitionId);
+        Task<SchemaRecord> LookupSchemaFromCredentialDefinitionAsync(Pool pool, string credentialDefinitionId);
 
         /// <summary>
         /// Looks up the schema definition on the ledger.
@@ -109,7 +109,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="pool">The pool.</param>
         /// <param name="sequenceId">The sequence identifier of the schema to resolve.</param>
         /// <returns>A json string of the schema</returns>
-        Task<string> LookupSchemaAsync(Pool pool, int sequenceId);
+        Task<SchemaRecord> LookupSchemaAsync(Pool pool, int sequenceId);
 
         /// <summary>
         /// Looks up the schema definition on the ledger.
@@ -117,6 +117,6 @@ namespace AgentFramework.Core.Contracts
         /// <param name="pool">The pool.</param>
         /// <param name="schemaId">The identifier of the schema definition to resolve.</param>
         /// <returns>A json string of the schema</returns>
-        Task<string> LookupSchemaAsync(Pool pool, string schemaId);
+        Task<SchemaRecord> LookupSchemaAsync(Pool pool, string schemaId);
     }
 }
