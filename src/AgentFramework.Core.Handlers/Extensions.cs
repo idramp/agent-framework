@@ -25,6 +25,7 @@ namespace AgentFramework.Core.Handlers
             collection.AddTransient<DefaultForwardHandler>();
             collection.AddTransient<DefaultTrustPingMessageHandler>();
             collection.AddTransient<DefaultDiscoveryHandler>();
+            collection.AddTransient<DefaultEphemeralChallengeHandler>();
         }
 
         internal static AgentContext ToHandlerAgentContext(this IAgentContext context)

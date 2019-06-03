@@ -184,5 +184,14 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.UpdateAsync(wallet, record);
         }
+
+        /// <inheritdoc />
+        public virtual async Task UpdateAgentOwnerAsync(Wallet wallet, AgentOwner owner)
+        {
+            var record = await GetProvisioningAsync(wallet);
+            record.Owner = owner;
+
+            await RecordService.UpdateAsync(wallet, record);
+        }
     }
 }

@@ -44,5 +44,13 @@ namespace AgentFramework.Core.Contracts
         /// <param name="endpoint">The endpoint.</param>
         /// <returns></returns>
         Task UpdateEndpointAsync(Wallet wallet, AgentEndpoint endpoint);
+
+        /// <summary>
+        /// Updates the agent owner information.
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="owner">The agent owner.</param>
+        /// <returns></returns>
+        Task UpdateAgentOwnerAsync(Wallet wallet, AgentOwner owner);
     }
 }
