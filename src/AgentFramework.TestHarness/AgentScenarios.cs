@@ -83,7 +83,7 @@ namespace AgentFramework.TestHarness
                 inviteeConnection, invitation.RecipientKeys.First(), true);
 
             Assert.NotNull(response);
-            await inviter.HandleInboundAsync(response);
+            await inviter.HandleInboundAsync(response, invitee.ServiceProvider);
 
             await slim.WaitAsync(TimeSpan.FromSeconds(30));
 

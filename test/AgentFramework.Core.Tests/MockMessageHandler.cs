@@ -14,5 +14,9 @@ namespace AgentFramework.Core.Tests
         {
             throw new NotImplementedException();
         }
+        public Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messageContext, IServiceProvider serviceProvider)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

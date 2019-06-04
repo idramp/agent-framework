@@ -10,7 +10,7 @@ namespace AgentFramework.TestHarness.Mock
     {
         public void RegisterAgent(MockAgent agent)
         {
-            Func<(string name, byte[] data), Task<byte[]>> function = async (cb) => await agent.HandleInboundAsync(new MessageContext(cb.data, true));
+            Func<(string name, byte[] data), Task<byte[]>> function = async (cb) => await agent.HandleInboundAsync(new MessageContext(cb.data, true), agent.ServiceProvider);
             _agentInBoundCallBacks.Add((agent.Name, function));
         }
 
