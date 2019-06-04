@@ -76,17 +76,18 @@ namespace AgentFramework.Core.Handlers
         /// <typeparam name="T"></typeparam>
         /// <param name="instance">The instance.</param>
         protected void AddHandler<T>(T instance) where T : IMessageHandler => _handlers.Add(instance);
-
+        
         /// <summary>
         /// Invoke the handler pipeline and process the passed message.
         /// </summary>
         /// <param name="context">The agent context.</param>
         /// <param name="messageContext">The message context.</param>
+        /// <param name="serviceProvider">The service provider in the request context.</param>
         /// <returns></returns>
         /// <exception cref="Exception">Expected inner message to be of type 'ForwardMessage'</exception>
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
         /// TODO should recieve a message context and return a message context.
-        protected async Task<byte[]> ProcessAsync(IAgentContext context, MessageContext messageContext)
+        protected async Task<byte[]> ProcessAsync(IAgentContext context, MessageContext messageContext, IServiceProvider serviceProvider)
         {
             EnsureConfigured();
 
@@ -98,13 +99,13 @@ namespace AgentFramework.Core.Handlers
             MessageContext outgoingMessageContext = null;
             while (agentContext.TryGetNext(out var message) && outgoingMessageContext == null)
             {
-                outgoingMessageContext = await ProcessMessage(agentContext, message);
+                outgoingMessageContext = await ProcessMessage(agentContext, message, serviceProvider);
             }
 
             return outgoingMessageContext?.Payload;
         }
 
-        private async Task<MessageContext> ProcessMessage(IAgentContext agentContext, MessageContext inboundMessageContext)
+        private async Task<MessageContext> ProcessMessage(IAgentContext agentContext, MessageContext inboundMessageContext, IServiceProvider serviceProvider)
         {
             if (inboundMessageContext.Packed)
             {
@@ -121,7 +122,7 @@ namespace AgentFramework.Core.Handlers
                     inboundMessageContext.GetMessageType(),
                     inboundMessageContext.Payload.GetUTF8String());
 
-                var response = await messageHandler.ProcessAsync(agentContext, inboundMessageContext);
+                var response = await messageHandler.ProcessAsync(agentContext, inboundMessageContext, serviceProvider);
 
                 if (response != null)
                 {

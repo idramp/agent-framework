@@ -43,9 +43,10 @@ namespace AgentFramework.Core.Handlers.Internal
         /// </summary>
         /// <param name="agentContext"></param>
         /// <param name="messageContext">The agent message agentContext.</param>
+        /// <param name="serviceProvider">The service provider in the request context.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {message.Type}</exception>
-        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messageContext)
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messageContext, System.IServiceProvider serviceProvider)
         {
             switch (messageContext.GetMessageType())
             {

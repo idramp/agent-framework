@@ -33,9 +33,10 @@ namespace AgentFramework.AspNetCore.Middleware
 
         /// <summary>Called by the ASPNET Core runtime</summary>
         /// <param name="context">The context.</param>
+        /// <param name="serviceProvider">A service provider for the request context.</param>
         /// <returns></returns>
         /// <exception cref="Exception">Empty content length</exception>
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, IServiceProvider serviceProvider)
         {
             if (!context.Request.Method.Equals("POST", StringComparison.OrdinalIgnoreCase))
             {
@@ -51,7 +52,8 @@ namespace AgentFramework.AspNetCore.Middleware
 
                 var result = await ProcessAsync(
                     context: await _contextProvider.GetContextAsync(), //TODO assumes all recieved messages are packed 
-                    messageContext: new MessageContext(body.GetUTF8Bytes(), true));
+                    messageContext: new MessageContext(body.GetUTF8Bytes(), true),
+                    serviceProvider);
 
                 context.Response.StatusCode = 200;
 

@@ -13,6 +13,6 @@ namespace AgentFramework.TestHarness.Mock
         {
         }
 
-        internal Task HandleAsync(MessageContext msg, IAgentContext context) => ProcessAsync(context, msg);
+        internal Task HandleAsync(MessageContext msg, IAgentContext context) => ProcessAsync(context, msg, this.Provider);
     }
 }

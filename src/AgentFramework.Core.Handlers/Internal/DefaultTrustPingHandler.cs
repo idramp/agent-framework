@@ -53,7 +53,8 @@ namespace AgentFramework.Core.Handlers.Internal
         /// </summary>
         /// <param name="agentContext"></param>
         /// <param name="messageContext">The agent message agentContext.</param>
-        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messageContext)
+        /// <param name="serviceProvider">The service provider in the request context.</param>
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messageContext, System.IServiceProvider serviceProvider)
         {
             await Task.Yield();
 
