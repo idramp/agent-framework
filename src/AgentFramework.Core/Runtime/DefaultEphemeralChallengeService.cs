@@ -255,5 +255,16 @@ namespace AgentFramework.Core.Runtime
 
             return challengeResponse;
         }
+
+        /// <inheritdoc />
+        public async Task UpdateChallengeConfigAsync(IAgentContext agentContext, string challengeConfigId, EphemeralChallengeConfiguration config)
+        {
+            var configRecord = await GetChallengeConfigAsync(agentContext, challengeConfigId);
+
+            configRecord.Name = config.Name;
+            configRecord.Contents = JObject.FromObject(config.Contents);
+
+            await RecordService.UpdateAsync(agentContext.Wallet, configRecord);
+        }
     }
 }

@@ -89,5 +89,14 @@ namespace AgentFramework.Core.Contracts
         /// <param name="challengeResponse">The ephemeral challenge response.</param>
         /// <returns>The identifier of the record associated to the message.</returns>
         Task<string> ProcessChallengeResponseAsync(IAgentContext agentContext, EphemeralChallengeResponseMessage challengeResponse);
+
+
+        /// <summary>
+        /// Update a challenge configuration record.
+        /// </summary>
+        /// <param name="agentContext">The agent context.</param>
+        /// <param name="challengeConfigId">Challenge configuration identifier.</param>
+        /// <param name="config">The challenge configuration.</param>
+        Task UpdateChallengeConfigAsync(IAgentContext agentContext, string challengeConfigId, EphemeralChallengeConfiguration config);
     }
 }
