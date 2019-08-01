@@ -448,5 +448,54 @@ namespace AgentFramework.Core.Runtime
             // Update local credential record
             await RecordService.UpdateAsync(agentContext.Wallet, credential);
         }
+
+        /// <inheritdoc />
+        public virtual async Task<(CredentialRejectMessage, CredentialRecord)> CreateCredentialRejectAsync(
+            IAgentContext agentContext, string offerId)
+        {
+            var credential = await GetAsync(agentContext, offerId);
+
+            if (credential.State != CredentialState.Offered)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Credential state was invalid. Expected '{CredentialState.Offered}', found '{credential.State}'");
+
+            var connection = await ConnectionService.GetAsync(agentContext, credential.ConnectionId);
+
+            await credential.TriggerAsync(CredentialTrigger.Reject);
+            await RecordService.UpdateAsync(agentContext.Wallet, credential);
+
+            var threadId = credential.GetTag(TagConstants.LastThreadId);
+            var response = new CredentialRejectMessage();
+
+            response.ThreadFrom(threadId);
+
+            return (response, credential);
+        }
+        
+        /// <inheritdoc />
+        public virtual async Task<string> ProcessCredentialRejectAsync(IAgentContext agentContext, CredentialRejectMessage credentialReject, ConnectionRecord connection)
+        {
+            Logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialReject.Type);
+
+            var credential = await this.GetByThreadIdAsync(agentContext, credentialReject.GetThreadId());
+
+            if (credential.State != CredentialState.Offered)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Credential state was invalid. Expected '{CredentialState.Offered}', found '{credential.State}'");
+
+            credential.ConnectionId = connection.Id;
+
+            await credential.TriggerAsync(CredentialTrigger.Reject);
+            await RecordService.UpdateAsync(agentContext.Wallet, credential);
+
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                RecordId = credential.Id,
+                MessageType = credentialReject.Type,
+                ThreadId = credentialReject.GetThreadId()
+            });
+
+            return credential.Id;
+        }
     }
 }

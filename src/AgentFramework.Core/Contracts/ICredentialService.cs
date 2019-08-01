@@ -144,5 +144,26 @@ namespace AgentFramework.Core.Contracts
         /// <param name="issuerDid">The DID of the issuer who issued the credential and owns the definitions</param>
         /// <returns>The response async.</returns>
         Task RevokeCredentialAsync(IAgentContext agentContext, string credentialId, string issuerDid);
+
+        /// <summary>
+        /// Rejects the offer asynchronous.
+        /// </summary>
+        /// <param name="agentContext">Agent Context.</param>
+        /// <param name="offerId">The offer identifier.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
+        /// <returns>The response async.</returns>
+        Task<(CredentialRejectMessage, CredentialRecord)> CreateCredentialRejectAsync(IAgentContext agentContext, string offerId);
+
+        /// <summary>
+        /// Processes the credential reject and stores in the designated wallet.
+        /// </summary>
+        /// <param name="agentContext">Agent Context.</param>
+        /// <param name="credentialReject">The credential reject.</param>
+        /// <param name="connection">The connection.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <returns>The credential identifier of the stored credential record.</returns>
+        Task<string> ProcessCredentialRejectAsync(IAgentContext agentContext, CredentialRejectMessage credentialReject, ConnectionRecord connection);
     }
 }

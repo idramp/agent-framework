@@ -41,6 +41,11 @@
         public const string Credential = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/credential-issuance/0.1/credential-issue";
 
         /// <summary>
+        /// The credential reject.
+        /// </summary>
+        public const string CredentialReject = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/credential-issuance/0.1/credential-reject";
+
+        /// <summary>
         /// The proof request.
         /// </summary>
         public const string ProofRequest = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/credential-presentation/0.1/presentation-request";

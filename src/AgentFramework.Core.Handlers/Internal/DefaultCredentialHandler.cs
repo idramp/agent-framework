@@ -33,7 +33,8 @@ namespace AgentFramework.Core.Handlers.Internal
         {
             MessageTypes.CredentialOffer,
             MessageTypes.CredentialRequest,
-            MessageTypes.Credential
+            MessageTypes.Credential,
+            MessageTypes.CredentialReject
         };
 
         /// <summary>
@@ -74,6 +75,16 @@ namespace AgentFramework.Core.Handlers.Internal
 
                     return null;
                 }
+
+                case MessageTypes.CredentialReject:
+                {
+                    var reject = messageContext.GetMessage<CredentialRejectMessage>();
+                    await _credentialService.ProcessCredentialRejectAsync(
+                        agentContext, reject, messageContext.Connection);
+
+                    return null;
+                }
+
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,
                         $"Unsupported message type {messageContext.GetMessageType()}");
