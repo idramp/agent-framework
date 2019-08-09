@@ -177,6 +177,33 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
+        public virtual async Task AddIssuer(Wallet wallet, string issuerSeed, string tailsBaseUri = null)
+        {
+            ProvisioningRecord record = null;
+            try
+            {
+                record = await GetProvisioningAsync(wallet);
+            }
+            catch (AgentFrameworkException e) when (e.ErrorCode == ErrorCode.RecordNotFound) { }
+
+            if (record.IssuerDid != null)
+                throw new AgentFramework.Core.Exceptions.AgentFrameworkException(ErrorCode.RecordInInvalidState, "This wallet already has an issuer key.");
+
+            tailsBaseUri = tailsBaseUri ?? new Uri(new Uri(record.Endpoint.Uri), "tails").OriginalString;
+
+            var issuer = await Did.CreateAndStoreMyDidAsync(wallet,
+                    issuerSeed != null
+                    ? new { seed = issuerSeed }.ToJson()
+                    : "{}");
+
+            record.IssuerDid = issuer.Did;
+            record.IssuerVerkey = issuer.VerKey;
+            record.TailsBaseUri = tailsBaseUri;
+
+            await RecordService.UpdateAsync(wallet, record);
+        }
+
+        /// <inheritdoc />
         public virtual async Task UpdateEndpointAsync(Wallet wallet, AgentEndpoint endpoint)
         {
             var record = await GetProvisioningAsync(wallet);

@@ -38,6 +38,15 @@ namespace AgentFramework.Core.Contracts
         Task ProvisionAgentAsync(ProvisioningConfiguration configuration);
 
         /// <summary>
+        /// Add an issuer to an existing wallet.
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="issuerSeed">The issuer seed used to generate deterministic DID and Verkey. (32 characters) Leave <c>null</c> to generate random issuer did and verkey.</param>
+        /// <param name="tailsBaseUri">The tails service base URI.</param>
+        /// <returns></returns>
+        Task AddIssuer(Wallet wallet, string issuerSeed, string tailsBaseUri = null);
+
+        /// <summary>
         /// Updates the agent endpoint information.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
