@@ -48,7 +48,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name,
+        public virtual async Task<string> CreateSchemaAsync(IAgentContext agentContext, string issuerDid, string name,
             string version, string[] attributeNames)
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
@@ -61,30 +61,31 @@ namespace AgentFramework.Core.Runtime
                 AttributeNames = attributeNames
             };
 
-            await LedgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
-            await RecordService.AddAsync(wallet, schemaRecord);
+            await LedgerService.RegisterSchemaAsync(await agentContext.Pool, agentContext.Wallet, issuerDid, schema.SchemaJson);
+            await RecordService.AddAsync(agentContext.Wallet, schemaRecord);
 
             return schemaRecord.Id;
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string name,
+        public virtual async Task<string> CreateSchemaAsync(IAgentContext agentContext, string name,
             string version, string[] attributeNames)
         {
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
             if (provisioning?.IssuerDid == null)
             {
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "This wallet is not provisioned with issuer");
             }
 
-            return await CreateSchemaAsync(pool, wallet, provisioning.IssuerDid, name, version, attributeNames);
+            return await CreateSchemaAsync(agentContext, provisioning.IssuerDid, name, version, attributeNames);
         }
 
         /// <inheritdoc />
-        public async Task<SchemaRecord> LookupSchemaFromCredentialDefinitionAsync(Pool pool,
+        public async Task<SchemaRecord> LookupSchemaFromCredentialDefinitionAsync(IAgentContext agentContext,
             string credentialDefinitionId)
         {
-            var credDef = await LookupCredentialDefinitionAsync(pool, credentialDefinitionId);
+            Pool pool = await agentContext.Pool;
+            var credDef = await GetCredentialDefinitionAsync(agentContext, credentialDefinitionId, checkLedgerIfNotFound:true);
 
             if (credDef != null && string.IsNullOrEmpty(credDef.Id))
                 return null;
@@ -128,13 +129,31 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<SchemaRecord> LookupSchemaAsync(Pool pool, string schemaId)
+        public virtual async Task<SchemaRecord> GetSchemaAsync(IAgentContext agentContext, string schemaId, bool storeLocally)
         {
-            var result = await LedgerService.LookupSchemaAsync(pool, schemaId);
-            if (result?.ObjectJson == null)
-                return null;
+            SchemaRecord schemaRecord;
 
-            return ParseSchemaJson(result?.ObjectJson);
+            try
+            {
+                schemaRecord = await RecordService.GetAsync<SchemaRecord>(agentContext.Wallet, schemaId);
+            }
+            catch (AgentFrameworkException afe) when (afe.ErrorCode == ErrorCode.RecordNotFound)
+            {
+                // ignore record not found
+                schemaRecord = null;
+            }
+
+            if (schemaRecord == null)
+            {
+                var result = await LedgerService.LookupSchemaAsync(await agentContext.Pool, schemaId);
+                if (result?.ObjectJson != null)
+                    schemaRecord = ParseSchemaJson(result?.ObjectJson);
+
+                if (schemaRecord != null && storeLocally)
+                    await RecordService.AddAsync(agentContext.Wallet, schemaRecord);
+            }
+
+            return schemaRecord;
         }
 
         /// <inheritdoc />
@@ -142,9 +161,12 @@ namespace AgentFramework.Core.Runtime
             RecordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
+        public virtual async Task<string> CreateCredentialDefinitionAsync(IAgentContext agentContext, string schemaId,
             string issuerDid, string tag, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri)
         {
+            Pool pool = await agentContext.Pool;
+            Wallet wallet = agentContext.Wallet;
+
             var definitionRecord = new DefinitionRecord();
             var schema = await LedgerService.LookupSchemaAsync(pool, schemaId);
 
@@ -194,34 +216,51 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
+        public virtual async Task<string> CreateCredentialDefinitionAsync(IAgentContext agentContext, string schemaId,
             string tag, bool supportsRevocation, int maxCredentialCount)
         {
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
             if (provisioning?.IssuerDid == null)
             {
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound,
                     "This wallet is not provisioned with issuer");
             }
 
-            return await CreateCredentialDefinitionAsync(pool, wallet, schemaId, provisioning.IssuerDid, tag,
+            return await CreateCredentialDefinitionAsync(agentContext, schemaId, provisioning.IssuerDid, tag,
                 supportsRevocation, maxCredentialCount, new Uri(provisioning.TailsBaseUri));
         }
 
-        /// <inheritdoc />
-        public virtual async Task<DefinitionRecord> LookupCredentialDefinitionAsync(Pool pool, string definitionId)
-        {
-            var result = await LedgerService.LookupDefinitionAsync(pool, definitionId);
-            return ParseDefinitionJson(result?.ObjectJson);
-        }
+        //// <inheritdoc />
+        //public virtual async Task<DefinitionRecord> LookupCredentialDefinitionAsync(Pool pool, string definitionId)
+        //{
+        //    var result = await LedgerService.LookupDefinitionAsync(pool, definitionId);
+        //    return ParseDefinitionJson(result?.ObjectJson);
+        //}
 
         /// <inheritdoc />
         public virtual Task<List<DefinitionRecord>> ListCredentialDefinitionsAsync(Wallet wallet) =>
             RecordService.SearchAsync<DefinitionRecord>(wallet, null, null, 100);
 
         /// <inheritdoc />
-        public virtual Task<DefinitionRecord> GetCredentialDefinitionAsync(Wallet wallet, string credentialDefinitionId) =>
-            RecordService.GetAsync<DefinitionRecord>(wallet, credentialDefinitionId);
+        public virtual async Task<DefinitionRecord> GetCredentialDefinitionAsync(IAgentContext agentContext, string credentialDefinitionId, bool checkLedgerIfNotFound)
+        {
+            DefinitionRecord definitionRecord;
+            try
+            {
+                definitionRecord = await RecordService.GetAsync<DefinitionRecord>(agentContext.Wallet, credentialDefinitionId);
+            }
+            catch (Exception)
+            {
+                definitionRecord = null;
+            }
+
+            if (definitionRecord == null && checkLedgerIfNotFound)
+            {
+                var result = await LedgerService.LookupDefinitionAsync(await agentContext.Pool, credentialDefinitionId);
+                definitionRecord = ParseDefinitionJson(result?.ObjectJson);
+            }
+            return definitionRecord;
+        }
 
         private static SchemaRecord ParseSchemaJson(string schemaJson)
         {

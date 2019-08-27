@@ -370,7 +370,7 @@ namespace AgentFramework.Core.Runtime
                 credential.CredentialAttributesValues = values;
 
             var definitionRecord =
-                await SchemaService.GetCredentialDefinitionAsync(agentContext.Wallet, credential.CredentialDefinitionId);
+                await SchemaService.GetCredentialDefinitionAsync(agentContext, credential.CredentialDefinitionId);
 
             var connection = await ConnectionService.GetAsync(agentContext, credential.ConnectionId);
 
@@ -426,7 +426,7 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Credential state was invalid. Expected '{CredentialState.Requested}', found '{credential.State}'");
 
-            var definition = await SchemaService.GetCredentialDefinitionAsync(agentContext.Wallet, credential.CredentialDefinitionId);
+            var definition = await SchemaService.GetCredentialDefinitionAsync(agentContext, credential.CredentialDefinitionId);
 
             // Check if the state machine is valid for revocation
             await credential.TriggerAsync(CredentialTrigger.Revoke);
