@@ -23,6 +23,7 @@ namespace AgentFramework.Core.Tests
 
         private Pool _pool;
         private Wallet _issuerWallet;
+        private IAgentContext _agentContext;
 
         public SchemaServiceTests()
         {
@@ -45,11 +46,11 @@ namespace AgentFramework.Core.Tests
             var schemaAttrNames = new[] {"test_attr_1", "test_attr_2"};
 
             //Create a dummy schema
-            var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did, schemaName, schemaVersion,
+            var schemaId = await _schemaService.CreateSchemaAsync(_agentContext, issuer.Did, schemaName, schemaVersion,
                 schemaAttrNames);
 
             //Resolve it from the ledger with its identifier
-            var resultSchema = await _schemaService.LookupSchemaAsync(_pool, schemaId);
+            var resultSchema = await _schemaService.GetSchemaAsync(_agentContext, schemaId);
 
             var resultSchemaName = resultSchema.Name;
             var resultSchemaVersion = resultSchema.Version;
@@ -79,19 +80,19 @@ namespace AgentFramework.Core.Tests
             var schemaAttrNames = new[] { "test_attr_1", "test_attr_2" };
 
             //Create a dummy schema
-            var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did, schemaName, schemaVersion,
+            var schemaId = await _schemaService.CreateSchemaAsync(_agentContext, issuer.Did, schemaName, schemaVersion,
                 schemaAttrNames);
 
-            var credId = await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, "Tag", false, 100, new Uri("http://mock/tails"));
+            var credId = await _schemaService.CreateCredentialDefinitionAsync(_agentContext, schemaId, issuer.Did, "Tag", false, 100, new Uri("http://mock/tails"));
 
             var credDef =
-                await _schemaService.LookupCredentialDefinitionAsync(_pool, credId);
+                await _schemaService.GetCredentialDefinitionAsync(_agentContext, credId, checkLedgerIfNotFound:true);
 
             var resultCredId = credDef.Id;
 
             Assert.Equal(credId, resultCredId);
 
-            var result = await _schemaService.LookupSchemaFromCredentialDefinitionAsync(_pool, credId);
+            var result = await _schemaService.LookupSchemaFromCredentialDefinitionAsync(_agentContext, credId);
 
             var resultSchemaName = result.Name;
             var resultSchemaVersion = result.Version;
@@ -99,7 +100,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(schemaName, resultSchemaName);
             Assert.Equal(schemaVersion, resultSchemaVersion);
 
-            var recordResult = await _schemaService.GetCredentialDefinitionAsync(_issuerWallet, credId);
+            var recordResult = await _schemaService.GetCredentialDefinitionAsync(_agentContext, credId);
 
             Assert.Equal(schemaId, recordResult.SchemaId);
         }
@@ -118,6 +119,12 @@ namespace AgentFramework.Core.Tests
             _issuerWallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials);
 
             _pool = await PoolUtils.GetPoolAsync();
+
+            _agentContext = new Handlers.AgentContext
+            {
+                Wallet = _issuerWallet,
+                Pool = Models.PoolAwaitable.FromPool(_pool)
+            };
         }
 
         public async Task DisposeAsync()
