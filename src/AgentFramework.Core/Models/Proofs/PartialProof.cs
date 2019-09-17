@@ -104,13 +104,13 @@ namespace AgentFramework.Core.Models.Proofs
         /// The revealed attributes.
         /// </value>
         [JsonProperty("self_attested_attrs")]
-        public Dictionary<string, ProofAttribute> SelfAttestedAttributes { get; set; }
+        public Dictionary<string, string> SelfAttestedAttributes { get; set; }
 
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"RevealedAttributes={string.Join(",", RevealedAttributes ?? new Dictionary<string, ProofAttribute>())}, " +
-            $"SelfAttestedAttributes={string.Join(",", SelfAttestedAttributes ?? new Dictionary<string, ProofAttribute>())}";
+            $"SelfAttestedAttributes={string.Join(",", SelfAttestedAttributes ?? new Dictionary<string, string>())}";
     }
 
     /// <summary>

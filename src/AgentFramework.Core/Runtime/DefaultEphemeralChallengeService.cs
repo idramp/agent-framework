@@ -67,11 +67,11 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateChallengeConfigAsync(IAgentContext agentContext, EphemeralChallengeConfiguration config)
+        public virtual async Task<string> CreateChallengeConfigAsync(IAgentContext agentContext, EphemeralChallengeConfiguration config, string id = null)
         {
             EphemeralChallengeConfigRecord configRecord = new EphemeralChallengeConfigRecord
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = id ?? Guid.NewGuid().ToString(),
                 Name = config.Name,
                 Type = config.Type,
                 Contents = JObject.FromObject(config.Contents)
@@ -208,8 +208,17 @@ namespace AgentFramework.Core.Runtime
 
             if (challengeResponse.Status == EphemeralChallengeResponseStatus.Accepted)
             {
-                var result = await ProofService.VerifyProofAsync(agentContext, record.Challenge.Contents.ToJson(),
-                    record.Response.Contents.ToJson());
+                bool result;
+                try
+                {
+                    result = await ProofService.VerifyProofAsync(agentContext, record.Challenge.Contents.ToJson(),
+                                record.Response.Contents.ToJson());
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Could not verify Ephemeral Challenge Proof.");
+                    result = false;
+                }
                 if (result)
                     await record.TriggerAsync(ChallengeTrigger.AcceptChallenge);
                 else

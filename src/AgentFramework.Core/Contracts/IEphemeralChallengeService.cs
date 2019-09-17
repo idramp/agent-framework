@@ -35,8 +35,9 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentContext">The agent context.</param>
         /// <param name="config">The challenge configuration.</param>
+        /// <param name="id">The Id to use when creating the challenge config record.*</param>
         /// <returns>The challenge configuration identifier.</returns>
-        Task<string> CreateChallengeConfigAsync(IAgentContext agentContext, EphemeralChallengeConfiguration config);
+        Task<string> CreateChallengeConfigAsync(IAgentContext agentContext, EphemeralChallengeConfiguration config, string id = null);
 
         /// <summary>
         /// Gets a challenge by identifier.
